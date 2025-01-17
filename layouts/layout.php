@@ -69,10 +69,34 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                             </a>
                         </li>
                         <li>
-                            <a href="view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-chart-bar mr-2"></i> View Reports
-                            </a>
+                            <button id="manage-users-btn" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
+                                <span class="flex items-center">
+                                    <i class="fas fa-users mr-2"></i> Reports
+                                </span>
+                                <svg id="arrow-icon" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.293-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <ul id="manage-users-submenu" class="hidden space-y-2 mt-2 ml-4">
+                                <li>
+                                    <a href="/Reports/view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                        <i class="fas fa-user-cog mr-2"></i> view_reports
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/Reports/view_reports_dates.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                        <i class="fas fa-user-friends mr-2"></i> view_reports_dates
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
+
+                        <!-- <li>
+
+                            <a href="/Reports/view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                <i class="fas fa-chart-bar mr-2"></i> Reports
+                            </a>
+                        </li> -->
                         <li>
                             <a href="settings.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                 <i class="fas fa-cogs mr-2"></i> System Settings
