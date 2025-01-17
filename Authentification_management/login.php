@@ -3,6 +3,8 @@
 session_start();
 require_once '../includes/config.php';
 
+
+
 // Check if the form is submitted
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and assign POST data
@@ -20,20 +22,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Check if user exists and verify the password
         if ($user && password_verify($password, $user['password'])) {
-            // Password is correct, start a session and set session variables
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['user_level'] = $user['user_level'];
-
+            
+            // Set user_group based on user_level
+            switch ($user['user_level']) {
+                case 1:
+                    $_SESSION['user_group'] = 'Admin';
+                    break;
+                case 2:
+                    $_SESSION['user_group'] = 'Manager';
+                    break;
+                case 3:
+                    $_SESSION['user_group'] = 'User';
+                    break;
+                default:
+                    $_SESSION['user_group'] = 'Guest'; // Default role in case something is wrong
+            }
+            
             // Optionally, update last login time
             $updateStmt = $pdo->prepare("UPDATE users SET last_login = NOW() WHERE id = :id");
             $updateStmt->bindParam(':id', $user['id'], PDO::PARAM_INT);
             $updateStmt->execute();
-
-            // Redirect to the dashboard or home page
+            
+            // Redirect to dashboard
             header('Location: ../layouts/dashboard.php');
             exit;
-        } else {
+        }
+        
+        
+        else {
             // Invalid credentials
             $error_message = "Invalid username or password.";
         }

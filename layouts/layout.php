@@ -5,13 +5,24 @@ if (session_status() == PHP_SESSION_NONE) {
 }
 
 // Default values in case the session variables are not set
-$user_group = $_SESSION['user_group'] ?? 'Guest';
-$user_level = $_SESSION['user_level'] ?? 0; // Assume 0 as the default level
-$user_name = $_SESSION['user_name'] ?? 'Guest';
+$user_level = $_SESSION['user_level']; // Assume 0 as the default level
+$user_name = $_SESSION['username'];
+
+// Determine user role based on user_level
+if ($user_level == 1) {
+    $user_group = 'Admin';
+} elseif ($user_level == 2) {
+    $user_group = 'Manager';
+} elseif ($user_level == 3) {
+    $user_group = 'User';
+} else {
+    $user_group = 'Guest'; // Default role if user_level is not 1, 2, or 3
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,6 +30,7 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body class="bg-gray-100">
     <div class="flex h-screen">
 
@@ -74,7 +86,7 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                             </a>
                         </li>
                         <li>
-                            <a href="settings.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                            <a href="../layouts/settings.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                 <i class="fas fa-cogs mr-2"></i> System Settings
                             </a>
                         </li>
@@ -162,4 +174,5 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
         });
     </script>
 </body>
+
 </html>

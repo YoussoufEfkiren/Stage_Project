@@ -1,4 +1,5 @@
 <?php
+//view_products.php
 session_start();
 
 // Check if the user is logged in and has a valid session
