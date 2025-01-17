@@ -1,3 +1,15 @@
+<?php
+// Check if session is active
+if (session_status() == PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Default values in case the session variables are not set
+$user_group = $_SESSION['user_group'] ?? 'Guest';
+$user_level = $_SESSION['user_level'] ?? 0; // Assume 0 as the default level
+$user_name = $_SESSION['user_name'] ?? 'Guest';
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -52,7 +64,7 @@
                             </a>
                         </li>
                         <li>
-                            <a href="add_product.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                            <a href="../Product_management/view_category.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                 <i class="fas fa-list-alt mr-2"></i> View Category
                             </a>
                         </li>
