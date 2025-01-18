@@ -36,16 +36,17 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                                 <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
                             </a>
                         </li>
+                        <!-- Manage Participants Dropdown -->
                         <li>
-                            <button id="manage-users-btn" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
+                            <button id="participants-btn" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
                                 <span class="flex items-center">
                                     <i class="fas fa-users mr-2"></i> Manage Participants
                                 </span>
-                                <svg id="arrow-icon" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg id="participants-arrow-icon" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.293-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </button>
-                            <ul id="manage-users-submenu" class="hidden space-y-2 mt-2 ml-4">
+                            <ul id="participants-submenu" class="hidden space-y-2 mt-2 ml-4">
                                 <li>
                                     <a href="../User_Management/manage_users.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                         <i class="fas fa-user-cog mr-2"></i> Manage Users
@@ -53,11 +54,12 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                                 </li>
                                 <li>
                                     <a href="../User_Management/group_manage.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                        <i class="fas fa-user-friends mr-2"></i> Manage Groups
+                                        <i class="fas fa-user-plus mr-2"></i> Manage Groups
                                     </a>
                                 </li>
                             </ul>
                         </li>
+
                         <li>
                             <a href="../Product_management/view_products.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                 <i class="fas fa-boxes mr-2"></i> View Products
@@ -68,39 +70,46 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                                 <i class="fas fa-list-alt mr-2"></i> View Category
                             </a>
                         </li>
+                        <!-- Reports Dropdown for level 1 -->
                         <li>
-                            <button id="manage-users-btn" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
+                            <button id="reports-btn-level1" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
                                 <span class="flex items-center">
-                                    <i class="fas fa-users mr-2"></i> Reports
+                                    <i class="fas fa-file-alt mr-2"></i> Reports
                                 </span>
-                                <svg id="arrow-icon" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <svg id="reports-arrow-icon-level1" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.293-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                 </svg>
                             </button>
-                            <ul id="manage-users-submenu" class="hidden space-y-2 mt-2 ml-4">
+                            <ul id="reports-submenu-level1" class="hidden space-y-2 mt-2 ml-4">
                                 <li>
                                     <a href="/Reports/view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                        <i class="fas fa-user-cog mr-2"></i> view_reports
+                                        <i class="fas fa-eye mr-2"></i> View Reports
                                     </a>
                                 </li>
                                 <li>
                                     <a href="/Reports/view_reports_dates.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                        <i class="fas fa-user-friends mr-2"></i> view_reports_dates
+                                        <i class="fas fa-calendar-alt mr-2"></i> View Reports by Dates
                                     </a>
                                 </li>
                             </ul>
                         </li>
-
-                        <!-- <li>
-
-                            <a href="/Reports/view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-chart-bar mr-2"></i> Reports
-                            </a>
-                        </li> -->
+                        <!-- Sells for level 1 -->
                         <li>
-                            <a href="settings.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-cogs mr-2"></i> System Settings
-                            </a>
+                            <button id="sells-btn" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
+                                <span class="flex items-center">
+                                    <i class="fas fa-hand-holding-usd mr-2"></i> Sells
+                                </span>
+                                <svg id="sells-arrow-icon" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.293-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <ul id="sells-submenu" class="hidden space-y-2 mt-2 ml-4">
+                                <li>
+                                    <a href="../Product_management/sells.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                        <i class="fas fa-hand-holding-usd mr-2"></i> View Sells
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     <?php elseif ($user_level == 2): ?>
                         <li>
@@ -114,8 +123,8 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                             </a>
                         </li>
                         <li>
-                            <a href="sales_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-chart-line mr-2"></i> View Sales Reports
+                            <a href="../Product_management/view_category.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                <i class="fas fa-list-alt mr-2"></i> View Category
                             </a>
                         </li>
                     <?php elseif ($user_level == 3): ?>
@@ -125,14 +134,33 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
                             </a>
                         </li>
                         <li>
-                            <a href="../Product_management/view_products.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-boxes mr-2"></i> View Products
-                            </a>
+                           <a href="../Product_management/sells.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                 <i class="fas fa-hand-holding-usd mr-2"></i> Sells
+                             </a>
                         </li>
+
+                        <!-- Reports Dropdown for level 3 only -->
                         <li>
-                            <a href="purchase_history.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
-                                <i class="fas fa-history mr-2"></i> View Purchase History
-                            </a>
+                            <button id="reports-btn-level1" class="w-full text-left py-2 px-4 rounded hover:bg-blue-700 flex justify-between items-center">
+                                <span class="flex items-center">
+                                    <i class="fas fa-file-alt mr-2"></i> Reports
+                                </span>
+                                <svg id="reports-arrow-icon-level1" class="w-4 h-4 transform transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.292 7.292a1 1 0 011.414 0L10 10.586l3.293-3.294a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                </svg>
+                            </button>
+                            <ul id="reports-submenu-level1" class="hidden space-y-2 mt-2 ml-4">
+                                <li>
+                                    <a href="/Reports/view_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                        <i class="fas fa-eye mr-2"></i> View Reports
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="/Reports/view_reports_dates.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                        <i class="fas fa-calendar-alt mr-2"></i> View Reports by Dates
+                                    </a>
+                                </li>
+                            </ul>
                         </li>
                     <?php endif; ?>
                 </ul>
@@ -167,23 +195,96 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
 
     <!-- JavaScript -->
     <script>
-        const profileBtn = document.getElementById('profile-btn');
-        const profileMenu = document.getElementById('profile-menu');
-        profileBtn.addEventListener('click', () => {
-            profileMenu.classList.toggle('hidden');
+    const profileBtn = document.getElementById('profile-btn');
+    const profileMenu = document.getElementById('profile-menu');
+    profileBtn.addEventListener('click', () => {
+        profileMenu.classList.toggle('hidden');
+    });
+    document.addEventListener('click', (event) => {
+        if (!profileMenu.contains(event.target) && !profileBtn.contains(event.target)) {
+            profileMenu.classList.add('hidden');
+        }
+    });
+
+    // Toggle Reports Dropdown for level 1
+    const reportsBtnLevel1 = document.getElementById('reports-btn-level1');
+    const reportsSubmenuLevel1 = document.getElementById('reports-submenu-level1');
+    const reportsArrowIconLevel1 = document.getElementById('reports-arrow-icon-level1');
+    
+    if (reportsBtnLevel1) {
+        reportsBtnLevel1.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event from bubbling up
+            reportsSubmenuLevel1.classList.toggle('hidden');
+            reportsArrowIconLevel1.classList.toggle('rotate-180');
         });
-        document.addEventListener('click', (event) => {
-            if (!profileMenu.contains(event.target) && !profileBtn.contains(event.target)) {
-                profileMenu.classList.add('hidden');
-            }
+    }
+
+    // Toggle Sells Dropdown for level 1
+    const sellsBtnLevel1 = document.getElementById('sells-btn-level1');
+    const sellsSubmenuLevel1 = document.getElementById('sells-submenu-level1');
+    const sellsArrowIconLevel1 = document.getElementById('sells-arrow-icon-level1');
+
+    if (sellsBtnLevel1) {
+        sellsBtnLevel1.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event from bubbling up
+            sellsSubmenuLevel1.classList.toggle('hidden');
+            sellsArrowIconLevel1.classList.toggle('rotate-180');
         });
-        const manageUsersBtn = document.getElementById('manage-users-btn');
-        const manageUsersSubmenu = document.getElementById('manage-users-submenu');
-        const arrowIcon = document.getElementById('arrow-icon');
-        manageUsersBtn.addEventListener('click', () => {
-            manageUsersSubmenu.classList.toggle('hidden');
-            arrowIcon.classList.toggle('rotate-180');
+    }
+
+    // Toggle Reports Dropdown for level 3
+    const reportsBtnLevel3 = document.getElementById('reports-btn-level3');
+    const reportsSubmenuLevel3 = document.getElementById('reports-submenu-level3');
+    const reportsArrowIconLevel3 = document.getElementById('reports-arrow-icon-level3');
+    
+    if (reportsBtnLevel3) {
+        reportsBtnLevel3.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event from bubbling up
+            reportsSubmenuLevel3.classList.toggle('hidden');
+            reportsArrowIconLevel3.classList.toggle('rotate-180');
         });
-    </script>
+    }
+
+    // Toggle Sells Dropdown for level 3
+    const sellsBtnLevel3 = document.getElementById('sells-btn-level3');
+    const sellsSubmenuLevel3 = document.getElementById('sells-submenu-level3');
+    const sellsArrowIconLevel3 = document.getElementById('sells-arrow-icon-level3');
+
+    if (sellsBtnLevel3) {
+        sellsBtnLevel3.addEventListener('click', (event) => {
+            event.stopPropagation(); // Prevent event from bubbling up
+            sellsSubmenuLevel3.classList.toggle('hidden');
+            sellsArrowIconLevel3.classList.toggle('rotate-180');
+        });
+    }
+
+    // Close all dropdowns when clicking outside
+    document.addEventListener('click', (event) => {
+        // Close Reports for level 1
+        if (!reportsSubmenuLevel1.contains(event.target) && !reportsBtnLevel1.contains(event.target)) {
+            reportsSubmenuLevel1.classList.add('hidden');
+            reportsArrowIconLevel1.classList.remove('rotate-180');
+        }
+        
+        // Close Sells for level 1
+        if (!sellsSubmenuLevel1.contains(event.target) && !sellsBtnLevel1.contains(event.target)) {
+            sellsSubmenuLevel1.classList.add('hidden');
+            sellsArrowIconLevel1.classList.remove('rotate-180');
+        }
+
+        // Close Reports for level 3
+        if (!reportsSubmenuLevel3.contains(event.target) && !reportsBtnLevel3.contains(event.target)) {
+            reportsSubmenuLevel3.classList.add('hidden');
+            reportsArrowIconLevel3.classList.remove('rotate-180');
+        }
+
+        // Close Sells for level 3
+        if (!sellsSubmenuLevel3.contains(event.target) && !sellsBtnLevel3.contains(event.target)) {
+            sellsSubmenuLevel3.classList.add('hidden');
+            sellsArrowIconLevel3.classList.remove('rotate-180');
+        }
+    });
+</script>
+
 </body>
 </html>
