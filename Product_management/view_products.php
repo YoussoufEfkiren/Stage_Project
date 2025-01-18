@@ -34,9 +34,17 @@ $page_title = 'View Products';
 require_once '../includes/config.php';
 
 // Fetch all products
-$sql = "SELECT id, name, quantity, buy_price, sale_price, categorie_id, media_id, date FROM products";
+$sql = "
+    SELECT p.id, p.name, p.quantity, p.buy_price, p.sale_price, p.categorie_id, p.media_id, p.date,
+           c.name AS category_name, m.file_name AS media_name
+    FROM products p
+    LEFT JOIN categories c ON p.categorie_id = c.id
+    LEFT JOIN media m ON p.media_id = m.id
+";
+
 $stmt = $pdo->query($sql);
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Handle deleting a product
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
@@ -92,6 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
 
 // Handle updating a product
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+    // Collect form data
     $product_id = $_POST['id'];
     $name = $_POST['name'];
     $quantity = $_POST['quantity'];
@@ -101,22 +110,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
     $media_id = $_POST['media_id'];
     $date = $_POST['date'];
 
-    // Validate the product ID
-    if (!is_numeric($product_id)) {
-        die('Invalid product ID!');
+    // Validate category ID exists
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM categories WHERE id = :categorie_id");
+    $stmt->execute([':categorie_id' => $categorie_id]);
+    $categoryExists = $stmt->fetchColumn();
+
+    if (!$categoryExists) {
+        die('Invalid category ID!');
     }
 
-    // Update the product details in the database
+    // Update the product in the database
     $sql = "UPDATE products SET 
-            name = :name, 
-            quantity = :quantity, 
-            buy_price = :buy_price, 
-            sale_price = :sale_price,
-            categorie_id = :categorie_id, 
-            media_id = :media_id, 
-            date = :date 
+                name = :name, 
+                quantity = :quantity, 
+                buy_price = :buy_price, 
+                sale_price = :sale_price,
+                categorie_id = :categorie_id, 
+                media_id = :media_id, 
+                date = :date 
             WHERE id = :id";
-    
+
     $stmt = $pdo->prepare($sql);
     if ($stmt->execute([
         ':name' => $name,
@@ -135,6 +148,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         $_SESSION['message'] = 'Error updating product!';
     }
 }
+
 
 // Start building the content
 $content = '';
@@ -182,7 +196,7 @@ if (count($products) > 0) {
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['quantity'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['buy_price'], 2) . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['sale_price'], 2) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['categorie_id'] . '</td>
+                <td class="py-3 px-4 border-b border-gray-300">' . $product['category_name'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['media_id'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['date'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300 text-center">
@@ -234,13 +248,21 @@ $content .= '
                 <label for="sale_price" class="block text-sm font-medium text-gray-600">Sale Price</label>
                 <input type="number" step="0.01" name="sale_price" id="sale_price" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
+            
             <div class="mb-4">
-                <label for="categorie_id" class="block text-sm font-medium text-gray-600">Category ID</label>
-                <input type="number" name="categorie_id" id="categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
+            <label for="categorie_id" class="block mb-2 text-gray-700">Category:</label>
+            <select id="categorie_id" name="categorie_id" class="w-full p-2 border border-gray-300 rounded mb-4" required>
+                <?php
+                $categories = $pdo->query("SELECT id, name FROM categories")->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($categories as $category) {
+                    echo '<option value="' . $category['id'] . '">' . $category['name'] . '</option>';
+                }
+                ?>
+            </select>
             </div>
             <div class="mb-4">
                 <label for="media_id" class="block text-sm font-medium text-gray-600">Media ID</label>
-                <input type="number" name="media_id" id="media_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
+                <input type="number" name="media_id" id="media_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" >
             </div>
             <div class="mb-4">
                 <label for="date" class="block text-sm font-medium text-gray-600">Date</label>
@@ -277,8 +299,8 @@ $content .= '
                 <input type="number" step="0.01" name="sale_price" id="edit_sale_price" class="w-full px-4 py-2 border border-gray-300 rounded">
             </div>
             <div class="mb-4">
-                <label for="edit_categorie_id" class="block text-sm font-medium">Category ID</label>
-                <input type="number" name="categorie_id" id="edit_categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded">
+            <label for="edit_categorie_id" class="block text-sm font-medium">Category ID</label>
+            <input type="number" name="categorie_id" id="edit_categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded">
             </div>
             <div class="mb-4">
                 <label for="edit_media_id" class="block text-sm font-medium">Media ID</label>
@@ -313,17 +335,23 @@ $content .= '
 
 <script>
     // Function to open the edit modal
-    function openEditModal(id, name, quantity, buyPrice, salePrice, categoryId, mediaId, date) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_quantity').value = quantity;
-        document.getElementById('edit_buy_price').value = buyPrice;
-        document.getElementById('edit_sale_price').value = salePrice;
-        document.getElementById('edit_categorie_id').value = categoryId;
-        document.getElementById('edit_media_id').value = mediaId;
-        document.getElementById('edit_date').value = date.replace(' ', 'T'); // Convert date format for datetime-local input
-        document.getElementById('editModal').classList.remove('hidden');
-    }
+// Function to open the edit modal
+function openEditModal(id, name, quantity, buyPrice, salePrice, categoryId, mediaId, date) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_name').value = name;
+    document.getElementById('edit_quantity').value = quantity;
+    document.getElementById('edit_buy_price').value = buyPrice;
+    document.getElementById('edit_sale_price').value = salePrice;
+    document.getElementById('edit_categorie_id').value = categoryId;
+    document.getElementById('edit_media_id').value = mediaId;
+    
+    // Convert date format for datetime-local input (YYYY-MM-DDTHH:MM)
+    const formattedDate = date.replace(' ', 'T').slice(0, 16);  // Ensure it matches the required format
+    document.getElementById('edit_date').value = formattedDate;
+
+    document.getElementById('editModal').classList.remove('hidden');
+}
+
 
     // Function to close the edit modal
     function closeEditModal() {
@@ -340,8 +368,8 @@ $content .= '
         document.getElementById('addProductModal').classList.add('hidden');
     }
 
-    // Function to open the delete modal
-    function openDeleteModal(productId) {
+     // Function to open the delete modal
+     function openDeleteModal(productId) {
         document.getElementById('delete_id').value = productId;
         document.getElementById('deleteModal').classList.remove('hidden');
     }
@@ -350,6 +378,7 @@ $content .= '
     function closeDeleteModal() {
         document.getElementById('deleteModal').classList.add('hidden');
     }
+
 
     // Close modals when clicking outside
     window.onclick = function(event) {
@@ -365,6 +394,7 @@ $content .= '
             }
         });
     }
+
 </script>
 <?php
 include_once '../layouts/layout.php';

@@ -9,7 +9,31 @@ $user_group = $_SESSION['user_group'] ?? 'Guest';
 $user_level = $_SESSION['user_level'] ?? 0; // Assume 0 as the default level
 $user_name = $_SESSION['user_name'] ?? 'Guest';
 ?>
+<?php
+// Inclure la configuration de la base de données
+require_once '../includes/config.php';
 
+// Obtenir les informations de l'utilisateur
+$user_id = $_SESSION['user_id'];
+$query = "SELECT * FROM users WHERE id = ?";
+$stmt = $pdo->prepare($query);
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+// Vérifier si l'utilisateur a une image de profil
+$profile_image = !empty($user['profile_image']) ? $user['profile_image'] : 'default-profile.jpg';
+?>
+<?php
+$query = "SELECT * FROM users WHERE id = ?";
+$stmt = $pdo->prepare($query);
+$stmt->execute([$user_id]);
+$user = $stmt->fetch();
+
+// Check if the 'group' field exists
+if (!$user || !isset($user['group'])) {
+    $user['group'] = 'No Group'; // Default value if 'group' is not found
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,30 +191,31 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
             </nav>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-grow">
-            <header class="bg-white shadow p-4 flex justify-between items-center">
-                <div class="text-xl font-bold">Welcome, <?php echo htmlspecialchars($user_name); ?>!</div>
-                <div class="relative">
-                    <button id="profile-btn" class="flex items-center space-x-2 bg-gray-200 p-2 rounded hover:bg-gray-300">
-                        <img src="https://via.placeholder.com/40" alt="Profile" class="w-8 h-8 rounded-full">
-                        <span><?php echo htmlspecialchars($user_name); ?></span>
-                    </button>
-                    <div id="profile-menu" class="absolute right-0 mt-2 bg-white shadow-md rounded w-48 hidden">
-                        <div class="p-4">
-                            <p class="font-bold"><?php echo htmlspecialchars($user_name); ?></p>
-                            <p class="text-sm text-gray-600"><?php echo htmlspecialchars($user_group); ?></p>
-                        </div>
-                        <hr>
-                        <a href="../User_Management/profile.php" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">View Profile</a>
-                        <a href="../Authentification_management/logout.php" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">Logout</a>
-                    </div>
+       <!-- Main Content -->
+<main class="flex-grow">
+    <header class="bg-white shadow p-4 flex justify-between items-center">
+        <div class="text-xl font-bold">Welcome, <?php echo htmlspecialchars($user['name']); ?>!</div>
+        <div class="relative">
+            <button id="profile-btn" class="flex items-center space-x-2 bg-gray-200 p-2 rounded hover:bg-gray-300">
+                <!-- Utilisation de l'image du profil -->
+                <img src="../uploads/<?php echo htmlspecialchars($profile_image); ?>" alt="Profile" class="w-8 h-8 rounded-full">
+                <span><?php echo htmlspecialchars($user['name']); ?></span>
+            </button>
+            <div id="profile-menu" class="absolute right-0 mt-2 bg-white shadow-md rounded w-48 hidden">
+                <div class="p-4">
+                    <p class="font-bold"><?php echo htmlspecialchars($user['name']); ?></p>
+                    <p class="text-sm text-gray-600"><?php echo htmlspecialchars($user['group']); ?></p>
                 </div>
-            </header>
-            <div class="p-6">
-                <?php echo $content; ?>
+                <hr>
+                <a href="../User_Management/profile.php" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">View Profile</a>
+                <a href="../Authentification_management/logout.php" class="block px-4 py-2 text-sm text-blue-600 hover:bg-gray-100">Logout</a>
             </div>
-        </main>
+        </div>
+    </header>
+    <div class="p-6">
+        <?php echo $content; ?>
+    </div>
+</main>
     </div>
 
     <!-- JavaScript -->
@@ -244,6 +269,27 @@ $user_name = $_SESSION['user_name'] ?? 'Guest';
             reportsArrowIconLevel3.classList.toggle('rotate-180');
         });
     }
+    // Toggle Manage Participants Dropdown for level 1
+const participantsBtn = document.getElementById('participants-btn');
+const participantsSubmenu = document.getElementById('participants-submenu');
+const participantsArrowIcon = document.getElementById('participants-arrow-icon');
+
+if (participantsBtn) {
+    participantsBtn.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent event from bubbling up
+        participantsSubmenu.classList.toggle('hidden');
+        participantsArrowIcon.classList.toggle('rotate-180');
+    });
+}
+
+// Close the dropdown when clicking outside
+document.addEventListener('click', (event) => {
+    if (!participantsSubmenu.contains(event.target) && !participantsBtn.contains(event.target)) {
+        participantsSubmenu.classList.add('hidden');
+        participantsArrowIcon.classList.remove('rotate-180');
+    }
+});
+
 
     // Toggle Sells Dropdown for level 3
     const sellsBtnLevel3 = document.getElementById('sells-btn-level3');
