@@ -86,6 +86,11 @@ if ($user_level == 1) {
                             </a>
                         </li>
                         <li>
+                            <a href="sales_reports.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
+                                <i class="fas fa-chart-line mr-2"></i> View Sales Reports
+                            </a>
+                        </li>
+                        <li>
                             <a href="../layouts/settings.php" class="block py-2 px-4 rounded hover:bg-blue-700 flex items-center">
                                 <i class="fas fa-cogs mr-2"></i> System Settings
                             </a>

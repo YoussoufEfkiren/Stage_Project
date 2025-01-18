@@ -1,5 +1,5 @@
 <?php
-//view_products.php
+// view_products.php
 session_start();
 
 // Check if the user is logged in and has a valid session
@@ -55,6 +55,7 @@ $sql = "
     FROM products p
     LEFT JOIN categories c ON p.categorie_id = c.id
 ";
+
 $stmt = $pdo->query($sql);
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -166,7 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
 
 // Start building the content
 $content = '';
-
 $content .= '
     <div class="p-6 bg-gray-50 min-h-screen">
         <h1 class="text-4xl font-bold mb-6 text-gray-700">View Products</h1>
@@ -201,34 +201,33 @@ $content .= '
                 </thead>
                 <tbody class="text-gray-700 text-sm">';
 
-if (count($products) > 0) {
-    foreach ($products as $product) {
-        $content .= '
-            <tr class="hover:bg-gray-50">
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['id'] . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['name']) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['quantity'] . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['buy_price'], 2) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['sale_price'], 2) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['category_name']) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['media_id'] . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['date'] . '</td>
-                <td class="py-3 px-4 border-b border-gray-300 text-center">
-                    <button onclick="openEditModal(' . $product['id'] . ', \'' . addslashes(htmlspecialchars($product['name'])) . '\', ' . $product['quantity'] . ', ' . $product['buy_price'] . ', ' . $product['sale_price'] . ', ' . $product['categorie_id'] . ', ' . $product['media_id'] . ', \'' . $product['date'] . '\')" class="text-blue-500 hover:underline">
-                        <i class="fas fa-edit"></i> Edit
-                    </button>
-                    <button type="button" onclick="openDeleteModal(' . $product['id'] . ')" class="text-red-500 hover:underline ml-4">
-                        <i class="fas fa-trash-alt"></i> Delete
-                    </button>
-                </td>
-            </tr>';
-    }
-} else {
-    $content .= '
-        <tr>
-            <td colspan="9" class="py-6 px-4 text-center text-gray-500">No products found</td>
-        </tr>';
-}
+                if (count($products) > 0) {
+                    foreach ($products as $product) {
+                        $content .= '
+                            <tr class="hover:bg-gray-50">
+                                <td class="py-3 px-4 border-b border-gray-300">' . $product['id'] . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['name']) . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">' . $product['quantity'] . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['buy_price'], 2) . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['sale_price'], 2) . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['category_name']) . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">' . $product['media_id'] . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300">' . $product['date'] . '</td>
+                                <td class="py-3 px-4 border-b border-gray-300 text-center">
+                                    <button onclick="openEditProductModal(' . $product['id'] . ')" class="text-yellow-500 hover:text-yellow-700">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <form action="" method="post" style="display:inline;">
+                                        <button type="submit" name="delete_id" value="' . $product['id'] . '" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>';
+                    }
+                } else {
+                    $content .= '<tr><td colspan="9" class="py-3 px-4 text-center border-b border-gray-300">No products found</td></tr>';
+                }
 
 $content .= '
                 </tbody>
@@ -236,12 +235,13 @@ $content .= '
         </div>
     </div>';
 
+echo $content;
 ?>
 
-<!-- Include the layout -->
-<?php include '../layouts/layout.php'; ?>
 
 
+
+<!-- Add Product Modal -->
 <!-- Add Product Modal -->
 <div id="addProductModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
@@ -298,6 +298,9 @@ $content .= '
 </div>
 
 
+
+
+
 <!-- Edit Product Modal -->
 <div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex justify-center items-center">
     <div class="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
@@ -321,27 +324,28 @@ $content .= '
                 <input type="number" step="0.01" name="sale_price" id="edit_sale_price" class="w-full px-4 py-2 border border-gray-300 rounded">
             </div>
             <div class="mb-4">
-                <label for="edit_categorie_id" class="block text-sm font-medium">Category ID</label>
-                <select name="categorie_id" id="edit_categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400">
-                    <?php
-                    // Fetch all categories from the database
-                    $stmt = $pdo->query("SELECT id, name FROM categories");
-                    while ($categorie = $stmt->fetch()) {
-                        echo '<option value="' . $categorie['id'] . '">' . $categorie['name'] . '</option>';
-                    }
-                    ?>
+                <label for="edit_categorie_id" class="block text-sm font-medium">Category</label>
+                <select id="edit_categorie_id" name="categorie_id" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <option value="">Select a category</option>
+                    <?php foreach ($categories as $cat): ?>
+                        <option value="<?= htmlspecialchars($cat['id']) ?>">
+                            <?= htmlspecialchars($cat['name']) ?>
+                        </option>
+                    <?php endforeach; ?>
                 </select>
             </div>
             <div class="mb-4">
-                <label for="edit_media_id" class="block text-sm font-medium">Media ID</label>
-                <input 
-                    type="file" 
-                    name="media_id" 
-                    id="edit_media_id" 
-                    accept="image/*" 
-                    class="mt-1 block w-full p-2 border border-gray-300 rounded-md"
-                >
+                <label for="edit_media_id" class="block text-sm font-medium">Media</label>
+                <select id="edit_media_id" name="media_id" class="mt-1 block w-full p-2 border border-gray-300 rounded-md">
+                    <option value="">Select media</option>
+                    <?php foreach ($media as $med): ?>
+                        <option value="<?= htmlspecialchars($med['id']) ?>">
+                            <?= htmlspecialchars($med['title']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </div>
+
             <div class="mb-4">
                 <label for="edit_date" class="block text-sm font-medium">Date</label>
                 <input type="datetime-local" name="date" id="edit_date" class="w-full px-4 py-2 border border-gray-300 rounded">
