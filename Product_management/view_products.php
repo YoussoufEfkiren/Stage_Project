@@ -48,6 +48,7 @@ $sql = "
         p.quantity, 
         p.buy_price, 
         p.sale_price, 
+        p.file_name,
         p.categorie_id,
         c.name AS category_name, 
         p.media_id, 
@@ -119,45 +120,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
 }
 
 // Handle updating a product
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
-    $product_id = $_POST['id'];
+// Handle updating a product
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
+    // Collect form data
+    $product_id = $_POST['product_id'];
     $name = $_POST['name'];
     $quantity = $_POST['quantity'];
     $buy_price = $_POST['buy_price'];
     $sale_price = $_POST['sale_price'];
     $categorie_id = $_POST['categorie_id'];
-    $media_id = $_POST['media_id'];
     $date = $_POST['date'];
 
-    // Validate the product ID
-    if (!is_numeric($product_id)) {
-        die('Invalid product ID!');
+    // Handle file upload (media image)
+    $file_name = '';
+    if (isset($_FILES['media_image']) && $_FILES['media_image']['error'] === UPLOAD_ERR_OK) {
+        $upload_dir = 'uploads/'; // Specify the folder to store images
+        $file_name = basename($_FILES['media_image']['name']);
+        move_uploaded_file($_FILES['media_image']['tmp_name'], $upload_dir . $file_name);
     }
 
-    // Update the product details in the database
-    $sql = "UPDATE products SET 
-            name = :name, 
-            quantity = :quantity, 
-            buy_price = :buy_price, 
-            sale_price = :sale_price,
-            categorie_id = :categorie_id, 
-            media_id = :media_id, 
-            date = :date 
-            WHERE id = :id";
-    
+    // Prepare SQL query to update product
+    $sql = "UPDATE products 
+            SET name = :name, quantity = :quantity, buy_price = :buy_price, sale_price = :sale_price, categorie_id = :categorie_id, date = :date";
+
+    // Append file_name to query if an image is uploaded
+    if ($file_name) {
+        $sql .= ", file_name = :file_name";
+    }
+
+    $sql .= " WHERE id = :product_id";
     $stmt = $pdo->prepare($sql);
-    if ($stmt->execute([
+
+    // Bind parameters
+    $params = [
         ':name' => $name,
         ':quantity' => $quantity,
         ':buy_price' => $buy_price,
         ':sale_price' => $sale_price,
         ':categorie_id' => $categorie_id,
-        ':media_id' => $media_id,
         ':date' => $date,
-        ':id' => $product_id
-    ])) {
+        ':product_id' => $product_id
+    ];
+
+    // Add file_name parameter if an image is uploaded
+    if ($file_name) {
+        $params[':file_name'] = $file_name;
+    }
+
+    // Execute the query
+    if ($stmt->execute($params)) {
         $_SESSION['message'] = 'Product updated successfully!';
-        header('Location: view_products.php');
+        header('Location: view_products.php'); // Redirect to view products page
         exit;
     } else {
         $_SESSION['message'] = 'Error updating product!';
@@ -194,7 +207,7 @@ $content .= '
                         <th class="py-3 px-4 text-left border-b border-gray-300">Buy Price</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Sale Price</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Category</th>
-                        <th class="py-3 px-4 text-left border-b border-gray-300">Media ID</th>
+                        <th class="py-3 px-4 text-left border-b border-gray-300">File Name</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Date</th>
                         <th class="py-3 px-4 text-center border-b border-gray-300">Actions</th>
                     </tr>
@@ -211,7 +224,7 @@ if (count($products) > 0) {
                 <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['buy_price'], 2) . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">$' . number_format($product['sale_price'], 2) . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['category_name']) . '</td>
-                <td class="py-3 px-4 border-b border-gray-300">' . $product['media_id'] . '</td>
+                <td class="py-3 px-4 border-b border-gray-300">' . $product['file_name'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['date'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300 text-center">
                     <button onclick="openEditModal(' . $product['id'] . ', \'' . addslashes(htmlspecialchars($product['name'])) . '\', ' . $product['quantity'] . ', ' . $product['buy_price'] . ', ' . $product['sale_price'] . ', ' . $product['categorie_id'] . ', ' . $product['media_id'] . ', \'' . $product['date'] . '\')" class="text-blue-500 hover:underline">
@@ -299,30 +312,31 @@ $content .= '
 
 
 <!-- Edit Product Modal -->
-<div id="editModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex justify-center items-center">
-    <div class="bg-white p-6 rounded-lg max-w-md w-full shadow-lg">
-        <h2 class="text-xl font-semibold mb-4">Edit Product</h2>
-        <form action="view_products.php" method="POST">
-            <input type="hidden" name="id" id="edit_id">
+<!-- Update Product Modal -->
+<div id="updateProductModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
+    <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
+        <h2 class="text-xl font-semibold text-gray-700 mb-4">Update Product</h2>
+        <form action="view_products.php" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="product_id" id="product_id"> <!-- Hidden field for product ID -->
             <div class="mb-4">
-                <label for="edit_name" class="block text-sm font-medium">Name</label>
-                <input type="text" name="name" id="edit_name" class="w-full px-4 py-2 border border-gray-300 rounded">
+                <label for="update_name" class="block text-sm font-medium text-gray-600">Name</label>
+                <input type="text" name="name" id="update_name" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
             <div class="mb-4">
-                <label for="edit_quantity" class="block text-sm font-medium">Quantity</label>
-                <input type="number" name="quantity" id="edit_quantity" class="w-full px-4 py-2 border border-gray-300 rounded">
+                <label for="update_quantity" class="block text-sm font-medium text-gray-600">Quantity</label>
+                <input type="number" name="quantity" id="update_quantity" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
             <div class="mb-4">
-                <label for="edit_buy_price" class="block text-sm font-medium">Buy Price</label>
-                <input type="number" step="0.01" name="buy_price" id="edit_buy_price" class="w-full px-4 py-2 border border-gray-300 rounded">
+                <label for="update_buy_price" class="block text-sm font-medium text-gray-600">Buy Price</label>
+                <input type="number" step="0.01" name="buy_price" id="update_buy_price" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
             <div class="mb-4">
-                <label for="edit_sale_price" class="block text-sm font-medium">Sale Price</label>
-                <input type="number" step="0.01" name="sale_price" id="edit_sale_price" class="w-full px-4 py-2 border border-gray-300 rounded">
+                <label for="update_sale_price" class="block text-sm font-medium text-gray-600">Sale Price</label>
+                <input type="number" step="0.01" name="sale_price" id="update_sale_price" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
             <div class="mb-4">
-                <label for="edit_categorie_id" class="block text-sm font-medium">Category ID</label>
-                <select name="categorie_id" id="edit_categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400">
+                <label for="update_categorie_id" class="block text-sm font-medium text-gray-600">Category</label>
+                <select name="categorie_id" id="update_categorie_id" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
                     <?php
                     // Fetch all categories from the database
                     $stmt = $pdo->query("SELECT id, name FROM categories");
@@ -333,22 +347,22 @@ $content .= '
                 </select>
             </div>
             <div class="mb-4">
-                <label for="edit_media_id" class="block text-sm font-medium">Media ID</label>
+                <label for="update_media_image" class="block text-sm font-medium">Upload Image</label>
                 <input 
                     type="file" 
-                    name="media_id" 
-                    id="edit_media_id" 
+                    id="update_media_image" 
+                    name="media_image" 
                     accept="image/*" 
                     class="mt-1 block w-full p-2 border border-gray-300 rounded-md"
                 >
             </div>
             <div class="mb-4">
-                <label for="edit_date" class="block text-sm font-medium">Date</label>
-                <input type="datetime-local" name="date" id="edit_date" class="w-full px-4 py-2 border border-gray-300 rounded">
+                <label for="update_date" class="block text-sm font-medium text-gray-600">Date</label>
+                <input type="datetime-local" name="date" id="update_date" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
-            <div class="flex justify-end gap-2">
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Save Changes</button>
-                <button type="button" onclick="closeEditModal()" class="bg-gray-500 text-white px-4 py-2 rounded">Cancel</button>
+            <div class="flex justify-end">
+                <button type="submit" name="update_product" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition-all">Update Product</button>
+                <button type="button" onclick="closeUpdateProductModal()" class="bg-gray-400 text-white px-4 py-2 rounded ml-2 hover:bg-gray-500 transition-all">Cancel</button>
             </div>
         </form>
     </div>
@@ -372,21 +386,25 @@ $content .= '
 <script>
     // Function to open the edit modal
     function openEditModal(id, name, quantity, buyPrice, salePrice, categoryId, mediaId, date) {
-        document.getElementById('edit_id').value = id;
-        document.getElementById('edit_name').value = name;
-        document.getElementById('edit_quantity').value = quantity;
-        document.getElementById('edit_buy_price').value = buyPrice;
-        document.getElementById('edit_sale_price').value = salePrice;
-        document.getElementById('edit_categorie_id').value = categoryId;
-        document.getElementById('edit_media_id').value = mediaId;
-        document.getElementById('edit_date').value = date.replace(' ', 'T'); // Convert date format for datetime-local input
-        document.getElementById('editModal').classList.remove('hidden');
+        // Set values in the modal fields
+        document.getElementById('product_id').value = id;
+        document.getElementById('update_name').value = name;
+        document.getElementById('update_quantity').value = quantity;
+        document.getElementById('update_buy_price').value = buyPrice;
+        document.getElementById('update_sale_price').value = salePrice;
+        document.getElementById('update_categorie_id').value = categoryId;
+        document.getElementById('update_date').value = date;
+
+        // Show the modal
+        document.getElementById('updateProductModal').classList.remove('hidden');
     }
 
+
     // Function to close the edit modal
-    function closeEditModal() {
-        document.getElementById('editModal').classList.add('hidden');
+    function closeUpdateProductModal() {
+        document.getElementById('updateProductModal').classList.add('hidden');
     }
+
 
     // Function to open the add product modal
     function openAddProductModal() {
