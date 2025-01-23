@@ -33,7 +33,18 @@ $page_title = 'View Products';
 // Include the database connection
 require_once '../includes/config.php';
 
-// Fetch all products
+// Pagination settings
+$items_per_page = 6;
+$current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+$offset = ($current_page - 1) * $items_per_page;
+
+// Get total number of products
+$count_sql = "SELECT COUNT(*) as total FROM products";
+$count_result = $pdo->query($count_sql);
+$total_products = $count_result->fetch(PDO::FETCH_ASSOC)['total'];
+$total_pages = ceil($total_products / $items_per_page);
+
+// Fetch products with pagination
 $sql = "
     SELECT 
         p.id, 
@@ -50,29 +61,18 @@ $sql = "
     FROM products p
     LEFT JOIN categories c ON p.categorie_id = c.id
     LEFT JOIN suppliers s ON p.supplier_id = s.id
+    LIMIT :limit OFFSET :offset
 ";
 $stmt = $pdo->prepare($sql);
+$stmt->bindValue(':limit', $items_per_page, PDO::PARAM_INT);
+$stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
 $stmt->execute();
 $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Fetch categories
-$stmt = $pdo->prepare("SELECT * FROM categories");
-$stmt->execute();
-$categories = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // Fetch suppliers
 $stmt = $pdo->prepare("SELECT * FROM suppliers");
 $stmt->execute();
 $suppliers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// Add a new PHP variable to check if filters are applied
-$filters_applied = isset($_GET['name']) || isset($_GET['category']) || isset($_GET['supplier']);
-
-// Get total number of products
-$count_sql = "SELECT COUNT(*) as total FROM products";
-$count_result = $pdo->query($count_sql);
-$total_products = $count_result->fetch(PDO::FETCH_ASSOC)['total'];
-// $total_pages = ceil($total_products / $items_per_page);
 
 // Handle deleting a product
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
@@ -139,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_product'])) {
     }
 }
 
+// Handle updating a product
 // Handle updating a product
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_product'])) {
     $product_id = $_POST['product_id'];
@@ -211,28 +212,8 @@ if (isset($_SESSION['message'])) {
 }
 
 $content .= '
-        <!-- Filters -->
-        <div class="mb-4 flex flex-wrap gap-4">
-            <input type="text" id="searchName" placeholder="Search by Name" class="p-2 border border-gray-300 rounded">
-            <select id="filterCategory" class="p-2 border border-gray-300 rounded">
-                <option value="">Filter by Category</option>';
-foreach ($categories as $category) {
-    $content .= '<option value="' . htmlspecialchars($category['name']) . '">' . htmlspecialchars($category['name']) . '</option>';
-}
-$content .= '
-            </select>
-            <select id="filterSupplier" class="p-2 border border-gray-300 rounded">
-                <option value="">Filter by Supplier</option>';
-foreach ($suppliers as $supplier) {
-    $content .= '<option value="' . htmlspecialchars($supplier['name']) . '">' . htmlspecialchars($supplier['name']) . '</option>';
-}
-$content .= '
-            </select>
-            <button id="applyFilter" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-all">Apply Filter</button>
-        </div>
-
         <div class="overflow-x-auto rounded-lg shadow-lg">
-            <table class="min-w-full bg-white border-collapse border border-gray-200" id="productsTable">
+            <table class="min-w-full bg-white border-collapse border border-gray-200">
                 <thead class="bg-gray-100 text-gray-600 text-sm uppercase">
                     <tr>
                         <th class="py-3 px-4 text-left border-b border-gray-300">ID</th>
@@ -252,7 +233,7 @@ $content .= '
 if (count($products) > 0) {
     foreach ($products as $product) {
         $content .= '
-            <tr class="hover:bg-gray-50" data-name="' . htmlspecialchars(strtolower($product['name'])) . '" data-category="' . htmlspecialchars(strtolower($product['category_name'])) . '" data-supplier="' . htmlspecialchars(strtolower($product['supplier_name'])) . '">
+            <tr class="hover:bg-gray-50">
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['id'] . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . htmlspecialchars($product['name']) . '</td>
                 <td class="py-3 px-4 border-b border-gray-300">' . $product['quantity'] . '</td>
@@ -277,17 +258,41 @@ if (count($products) > 0) {
 } else {
     $content .= '
         <tr>
-            <td colspan="10" class="py-6 px-4 text-center text-gray-500">No products found</td>
+            <td colspan="9" class="py-6 px-4 text-center text-gray-500">No products found</td>
         </tr>';
 }
 
 $content .= '
                 </tbody>
             </table>
-        </div>';
-
-
-$content .= '
+        </div>
+        
+        <!-- Pagination -->
+        <div class="mt-6 flex justify-center items-center space-x-4">
+            <a href="?page=1" 
+               class="' . ($current_page <= 1 ? 'opacity-50 cursor-not-allowed' : '') . ' bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all">
+                First
+            </a>
+            
+            <a href="?page=' . max(1, $current_page - 1) . '" 
+               class="' . ($current_page <= 1 ? 'opacity-50 cursor-not-allowed' : '') . ' bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all">
+                Previous
+            </a>
+            
+            <span class="text-gray-600">
+                Page ' . $current_page . ' of ' . $total_pages . '
+            </span>
+            
+            <a href="?page=' . min($total_pages, $current_page + 1) . '" 
+               class="' . ($current_page >= $total_pages ? 'opacity-50 cursor-not-allowed' : '') . ' bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all">
+                Next
+            </a>
+            
+            <a href="?page=' . $total_pages . '" 
+               class="' . ($current_page >= $total_pages ? 'opacity-50 cursor-not-allowed' : '') . ' bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-all">
+                Last
+            </a>
+        </div>
     </div>';
 
 ?>
@@ -304,7 +309,7 @@ $content .= '
                 <label for="name" class="block text-sm font-medium text-gray-600">Name</label>
                 <input type="text" name="name" id="name" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
-            <div class="mb-4">
+            <div class="<div class="mb-4">
                 <label for="quantity" class="block text-sm font-medium text-gray-600">Quantity</label>
                 <input type="number" name="quantity" id="quantity" class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-400" required>
             </div>
@@ -355,6 +360,7 @@ $content .= '
     </div>
 </div>
 
+<!-- Update Product Modal -->
 <!-- Update Product Modal -->
 <div id="updateProductModal" class="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 hidden">
     <div class="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
@@ -473,55 +479,6 @@ $content .= '
         document.getElementById('deleteModal').classList.add('hidden');
     }
 
-    // Function to filter the table
-    function filterTable() {
-        const nameFilter = document.getElementById("searchName").value.toLowerCase();
-        const categoryFilter = document.getElementById("filterCategory").value.toLowerCase();
-        const supplierFilter = document.getElementById("filterSupplier").value.toLowerCase();
-
-        const rows = document.querySelectorAll("#productsTable tbody tr");
-        rows.forEach(row => {
-            const name = row.dataset.name;
-            const category = row.dataset.category;
-            const supplier = row.dataset.supplier;
-
-            const matchesName = name.includes(nameFilter);
-            const matchesCategory = !categoryFilter || category === categoryFilter;
-            const matchesSupplier = !supplierFilter || supplier === supplierFilter;
-
-            row.style.display = matchesName && matchesCategory && matchesSupplier ? "" : "none";
-        });
-
-        // Update URL with filter parameters
-        const url = new URL(window.location);
-        url.searchParams.set('name', nameFilter);
-        url.searchParams.set('category', categoryFilter);
-        url.searchParams.set('supplier', supplierFilter);
-        window.history.pushState({}, '', url);
-    }
-
-    // Add event listeners
-    document.getElementById("searchName").addEventListener("input", filterTable);
-    document.getElementById("filterCategory").addEventListener("change", filterTable);
-    document.getElementById("filterSupplier").addEventListener("change", filterTable);
-    document.getElementById("applyFilter").addEventListener("click", filterTable);
-
-    // Initial filter on page load if URL parameters exist
-    window.addEventListener('load', () => {
-        const url = new URL(window.location);
-        const nameFilter = url.searchParams.get('name') || '';
-        const categoryFilter = url.searchParams.get('category') || '';
-        const supplierFilter = url.searchParams.get('supplier') || '';
-
-        document.getElementById("searchName").value = nameFilter;
-        document.getElementById("filterCategory").value = categoryFilter;
-        document.getElementById("filterSupplier").value = supplierFilter;
-
-        if (nameFilter || categoryFilter || supplierFilter) {
-            filterTable();
-        }
-    });
-
     // Close modals when clicking outside
     window.onclick = function(event) {
         let modals = [
@@ -537,4 +494,3 @@ $content .= '
         });
     }
 </script>
-
