@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         p.quantity AS product_quantity,
                         (s.price * s.qty) AS total_sale_amount,
                         ((s.price * s.qty) - (p.buy_price * s.qty)) AS profit
-                    FROM sales s
+                    FROM purchases s
                     INNER JOIN products p ON s.product_id = p.id
                     WHERE s.date BETWEEN :start_date AND :end_date
                     ORDER BY s.date DESC

@@ -35,7 +35,7 @@ $stmt_products = $pdo->query("SELECT COUNT(*) FROM products");
 $product_count = $stmt_products->fetchColumn();
 
 // Fetch the total sales amount
-$stmt_sales = $pdo->query("SELECT SUM(qty * price) FROM sales");
+$stmt_sales = $pdo->query("SELECT SUM(qty * price) FROM purchases");
 $total_sales = $stmt_sales->fetchColumn();
 
 // Fetch the count of suppliers
@@ -53,7 +53,7 @@ $stmt_category_stats = $pdo->query("
            SUM(s.qty * s.price) AS total_sales
     FROM categories c
     LEFT JOIN products p ON c.id = p.categorie_id
-    LEFT JOIN sales s ON p.id = s.product_id
+    LEFT JOIN purchases s ON p.id = s.product_id
     GROUP BY c.id
 ");
 
@@ -66,7 +66,7 @@ $stmt_sales_by_product = $pdo->query("
     SELECT p.name AS product_name, 
            SUM(s.qty * s.price) AS total_sales
     FROM products p
-    LEFT JOIN sales s ON p.id = s.product_id
+    LEFT JOIN purchases s ON p.id = s.product_id
     GROUP BY p.id
     ORDER BY total_sales DESC
 ");
@@ -85,7 +85,7 @@ $stmt_sales_by_category = $pdo->query("
            SUM(s.qty * s.price) AS total_sales
     FROM categories c
     LEFT JOIN products p ON c.id = p.categorie_id
-    LEFT JOIN sales s ON p.id = s.product_id
+    LEFT JOIN purchases s ON p.id = s.product_id
     GROUP BY c.id
 ");
 

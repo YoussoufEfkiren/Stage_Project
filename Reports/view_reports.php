@@ -18,7 +18,7 @@ try {
     $stmt = $pdo->query("
         SELECT sales.id AS sale_id, sales.qty, sales.price AS sale_price, sales.date AS sale_date, 
                products.name AS product_name, products.buy_price, products.quantity AS product_quantity 
-        FROM sales
+        FROM purchases sales
         INNER JOIN products ON sales.product_id = products.id
     ");
     $sales = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -61,13 +61,12 @@ ob_start();
         <table id="salesTable" class="min-w-full bg-white border-collapse border border-gray-200">
             <thead class="bg-gray-100 text-gray-600 text-sm uppercase">
                 <tr>
-                    <th class="py-3 px-4 text-left border-b border-gray-300">Sale ID</th>
+                    <th class="py-3 px-4 text-left border-b border-gray-300">buy ID</th>
                     <th class="py-3 px-4 text-left border-b border-gray-300">Product Name</th>
-                    <th class="py-3 px-4 text-left border-b border-gray-300">Quantity Sold</th>
-                    <th class="py-3 px-4 text-left border-b border-gray-300">Sale Price</th>
+                    <th class="py-3 px-4 text-left border-b border-gray-300">Quantity buyed</th>
                     <th class="py-3 px-4 text-left border-b border-gray-300">Product Buy Price</th>
                     <th class="py-3 px-4 text-left border-b border-gray-300">Stock Left (Per Product)</th>
-                    <th class="py-3 px-4 text-left border-b border-gray-300">Sale Date</th>
+                    <th class="py-3 px-4 text-left border-b border-gray-300">buy Date</th>
                 </tr>
             </thead>
             <tbody class="text-gray-700 text-sm">
@@ -77,7 +76,6 @@ ob_start();
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['sale_id']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['product_name']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['qty']); ?></td>
-                            <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['sale_price']); ?> $</td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['buy_price']); ?> $</td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['product_quantity']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['sale_date']); ?></td>
