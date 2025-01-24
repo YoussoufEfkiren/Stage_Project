@@ -53,8 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         p.name AS product_name,
                         p.buy_price,
                         p.quantity AS product_quantity,
-                        (s.price * s.qty) AS total_sale_amount,
-                        ((s.price * s.qty) - (p.buy_price * s.qty)) AS profit
+                        (p.buy_price * s.qty) AS total_spent
                     FROM purchases s
                     INNER JOIN products p ON s.product_id = p.id
                     WHERE s.date BETWEEN :start_date AND :end_date
@@ -83,7 +82,7 @@ ob_start();
 ?>
 
 <div class="p-6">
-    <h1 class="text-3xl font-semibold mb-6 text-center">View Sales Report by Date Range</h1>
+    <h1 class="text-3xl font-semibold mb-6 text-center">View Purchases Report by Date Range</h1>
     
     <?php if ($error_message): ?>
         <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
@@ -125,32 +124,31 @@ ob_start();
     <?php if (!empty($sales)): ?>
         <div id="report" class="overflow-x-auto mt-6">
             <h2 class="text-2xl font-semibold text-center mb-4">
-                Sales Report from <?php echo htmlspecialchars($start_date); ?> to <?php echo htmlspecialchars($end_date); ?>
+                Purchases Report from <?php echo htmlspecialchars($start_date); ?> to <?php echo htmlspecialchars($end_date); ?>
             </h2>
             
-            <!-- Sales Summary Cards -->
+            <!-- Total Spent Card -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 <?php
-                $totalSales = array_sum(array_column($sales, 'total_sale_amount'));
-                $totalProfit = array_sum(array_column($sales, 'profit'));
+                $totalSpent = array_sum(array_column($sales, 'total_spent'));
                 $totalQuantitySold = array_sum(array_column($sales, 'qty'));
                 $totalQuantityLeft = array_sum(array_column($sales, 'product_quantity'));
                 ?>
                 <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Total Sales</h3>
-                    <p class="text-2xl font-bold"><?php echo number_format($totalSales, 2); ?> $</p>
+                    <h3 class="text-gray-500 text-sm">Total Spent</h3>
+                    <p class="text-2xl font-bold"><?php echo number_format($totalSpent, 2); ?> $</p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Total Profit</h3>
-                    <p class="text-2xl font-bold"><?php echo number_format($totalProfit, 2); ?> $</p>
-                </div>
-                <div class="bg-white p-4 rounded-lg shadow">
-                    <h3 class="text-gray-500 text-sm">Items Sold</h3>
+                    <h3 class="text-gray-500 text-sm">Items Purchased</h3>
                     <p class="text-2xl font-bold"><?php echo number_format($totalQuantitySold); ?></p>
                 </div>
                 <div class="bg-white p-4 rounded-lg shadow">
                     <h3 class="text-gray-500 text-sm">Stock Remaining</h3>
                     <p class="text-2xl font-bold"><?php echo number_format($totalQuantityLeft); ?></p>
+                </div>
+                <div class="bg-white p-4 rounded-lg shadow">
+                    <h3 class="text-gray-500 text-sm">Avg. Unit Cost</h3>
+                    <p class="text-2xl font-bold"><?php echo number_format($totalSpent / $totalQuantitySold, 2); ?> $</p>
                 </div>
             </div>
 
@@ -160,9 +158,8 @@ ob_start();
                         <th class="py-3 px-4 text-left border-b border-gray-300">Sale ID</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Product Name</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Quantity</th>
-                        <th class="py-3 px-4 text-left border-b border-gray-300">Unit Price</th>
-                        <th class="py-3 px-4 text-left border-b border-gray-300">Total Amount</th>
-                        <th class="py-3 px-4 text-left border-b border-gray-300">Profit</th>
+                        <th class="py-3 px-4 text-left border-b border-gray-300">Unit Cost</th>
+                        <th class="py-3 px-4 text-left border-b border-gray-300">Total Spent</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Stock Left</th>
                         <th class="py-3 px-4 text-left border-b border-gray-300">Sale Date</th>
                     </tr>
@@ -173,9 +170,8 @@ ob_start();
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['sale_id']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['product_name']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['qty']); ?></td>
-                            <td class="py-3 px-4 border-b border-gray-300"><?php echo number_format($sale['sale_price'], 2); ?> $</td>
-                            <td class="py-3 px-4 border-b border-gray-300"><?php echo number_format($sale['total_sale_amount'], 2); ?> $</td>
-                            <td class="py-3 px-4 border-b border-gray-300"><?php echo number_format($sale['profit'], 2); ?> $</td>
+                            <td class="py-3 px-4 border-b border-gray-300"><?php echo number_format($sale['buy_price'], 2); ?> $</td>
+                            <td class="py-3 px-4 border-b border-gray-300"><?php echo number_format($sale['total_spent'], 2); ?> $</td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['product_quantity']); ?></td>
                             <td class="py-3 px-4 border-b border-gray-300"><?php echo htmlspecialchars($sale['sale_date']); ?></td>
                         </tr>
@@ -197,7 +193,7 @@ ob_start();
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Form validation
+    // Form validation remains the same
     const reportForm = document.getElementById('reportForm');
     if (reportForm) {
         reportForm.addEventListener('submit', function(e) {
@@ -247,15 +243,15 @@ function printReport() {
 
     // Get sales data and totals
     const salesData = <?php echo json_encode($sales); ?>;
-    const totalSales = <?php echo json_encode($totalSales); ?>;
-    const totalProfit = <?php echo json_encode($totalProfit); ?>;
+    const totalSpent = <?php echo json_encode($totalSpent); ?>;
     const totalQuantitySold = <?php echo json_encode($totalQuantitySold); ?>;
     const totalQuantityLeft = <?php echo json_encode($totalQuantityLeft); ?>;
+    const avgUnitCost = <?php echo json_encode($totalSpent / $totalQuantitySold); ?>;
 
     printWindow.document.write(`
         <html>
             <head>
-                <title>Sales Report</title>
+                <title>Purchases Report</title>
                 <style>
                     body { font-family: Arial, sans-serif; }
                     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
@@ -267,7 +263,7 @@ function printReport() {
                 </style>
             </head>
             <body>
-                <h1 class="header">Sales Report</h1>
+                <h1 class="header">Purchases Report</h1>
                 <p class="header">From: ${formattedStartDate} to ${formattedEndDate}</p>
                 <table>
                     <thead>
@@ -275,9 +271,8 @@ function printReport() {
                             <th>Sale ID</th>
                             <th>Product Name</th>
                             <th>Quantity</th>
-                            <th>Unit Price</th>
-                            <th>Total Amount</th>
-                            <th>Profit</th>
+                            <th>Unit Cost</th>
+                            <th>Total Spent</th>
                             <th>Stock Left</th>
                             <th>Sale Date</th>
                         </tr>
@@ -292,9 +287,8 @@ function printReport() {
                 <td>${sale.sale_id}</td>
                 <td>${sale.product_name}</td>
                 <td>${sale.qty}</td>
-                <td>${sale.sale_price}</td>
-                <td>${sale.total_sale_amount}</td>
-                <td>${sale.profit}</td>
+                <td>${sale.buy_price}</td>
+                <td>${sale.total_spent}</td>
                 <td>${sale.product_quantity}</td>
                 <td>${sale.sale_date}</td>
             </tr>
@@ -307,18 +301,18 @@ function printReport() {
                 <table class="totals-table">
                     <thead>
                         <tr>
-                            <th>Total Sales</th>
-                            <th>Total Profit</th>
-                            <th>Items Sold</th>
+                            <th>Total Spent</th>
+                            <th>Items Purchased</th>
                             <th>Stock Remaining</th>
+                            <th>Avg. Unit Cost</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td>${totalSales.toFixed(2)} $</td>
-                            <td>${totalProfit.toFixed(2)} $</td>
+                            <td>${totalSpent.toFixed(2)} $</td>
                             <td>${totalQuantitySold}</td>
                             <td>${totalQuantityLeft}</td>
+                            <td>${avgUnitCost.toFixed(2)} $</td>
                         </tr>
                     </tbody>
                 </table>
@@ -329,7 +323,6 @@ function printReport() {
     printWindow.document.close();
     printWindow.print();
 }
-
 
 function exportToExcel() {
     const startDate = document.getElementById('start_date').value;
@@ -353,28 +346,27 @@ function exportToExcel() {
 
     // Get sales data and totals
     const salesData = <?php echo json_encode($sales); ?>;
-    const totalSales = <?php echo json_encode($totalSales); ?>;
-    const totalProfit = <?php echo json_encode($totalProfit); ?>;
+    const totalSpent = <?php echo json_encode($totalSpent); ?>;
     const totalQuantitySold = <?php echo json_encode($totalQuantitySold); ?>;
     const totalQuantityLeft = <?php echo json_encode($totalQuantityLeft); ?>;
+    const avgUnitCost = <?php echo json_encode($totalSpent / $totalQuantitySold); ?>;
 
     // Prepare Excel content
     let excelContent = `
         <table border="1" style="border-collapse: collapse; width: 100%; font-family: Arial, sans-serif; font-size: 14px;">
             <thead style="background-color: #f4f4f4; font-weight: bold; text-align: center;">
                 <tr>
-                    <th colspan="8" style="font-size: 18px; padding: 10px;">Sales Report</th>
+                    <th colspan="7" style="font-size: 18px; padding: 10px;">Purchases Report</th>
                 </tr>
                 <tr>
-                    <th colspan="8" style="font-size: 14px; padding: 8px;">From: ${formattedStartDate} To: ${formattedEndDate}</th>
+                    <th colspan="7" style="font-size: 14px; padding: 8px;">From: ${formattedStartDate} To: ${formattedEndDate}</th>
                 </tr>
                 <tr style="background-color: #d9d9d9;">
                     <th style="padding: 8px;">Sale ID</th>
                     <th style="padding: 8px;">Product Name</th>
                     <th style="padding: 8px;">Quantity</th>
-                    <th style="padding: 8px;">Unit Price</th>
-                    <th style="padding: 8px;">Total Amount</th>
-                    <th style="padding: 8px;">Profit</th>
+                    <th style="padding: 8px;">Unit Cost</th>
+                    <th style="padding: 8px;">Total Spent</th>
                     <th style="padding: 8px;">Stock Left</th>
                     <th style="padding: 8px;">Sale Date</th>
                 </tr>
@@ -389,9 +381,8 @@ function exportToExcel() {
                 <td style="padding: 8px;">${sale.sale_id}</td>
                 <td style="padding: 8px;">${sale.product_name}</td>
                 <td style="padding: 8px;">${sale.qty}</td>
-                <td style="padding: 8px;">${sale.sale_price}</td>
-                <td style="padding: 8px;">${sale.total_sale_amount}</td>
-                <td style="padding: 8px;">${sale.profit}</td>
+                <td style="padding: 8px;">${sale.buy_price}</td>
+                <td style="padding: 8px;">${sale.total_spent}</td>
                 <td style="padding: 8px;">${sale.product_quantity}</td>
                 <td style="padding: 8px;">${sale.sale_date}</td>
             </tr>
@@ -403,19 +394,17 @@ function exportToExcel() {
             </tbody>
             <tfoot>
                 <tr style="background-color: #f4f4f4; font-weight: bold; text-align: center;">
-                    <td colspan="8" style="padding: 10px; font-size: 16px;">Totals</td>
+                    <td colspan="7" style="padding: 10px; font-size: 16px;">Totals</td>
                 </tr>
                 <tr style="background-color: #e0e0e0; text-align: center;">
-                    <td colspan="4" style="padding: 8px; text-align: right;"><strong>Total Sales:</strong></td>
-                    <td style="padding: 8px;">${totalSales.toFixed(2)} $</td>
-                    <td style="padding: 8px; text-align: right;"><strong>Total Profit:</strong></td>
-                    <td colspan="2" style="padding: 8px;">${totalProfit.toFixed(2)} $</td>
+                    <td colspan="4" style="padding: 8px; text-align: right;"><strong>Total Spent:</strong></td>
+                    <td style="padding: 8px;">${totalSpent.toFixed(2)} $</td>
+                    <td colspan="2" style="padding: 8px;"><strong>Avg. Unit Cost:</strong> ${avgUnitCost.toFixed(2)} $</td>
                 </tr>
                 <tr style="background-color: #e0e0e0; text-align: center;">
-                    <td colspan="4" style="padding: 8px; text-align: right;"><strong>Total Items Sold:</strong></td>
+                    <td colspan="4" style="padding: 8px; text-align: right;"><strong>Items Purchased:</strong></td>
                     <td style="padding: 8px;">${totalQuantitySold}</td>
-                    <td style="padding: 8px; text-align: right;"><strong>Stock Remaining:</strong></td>
-                    <td colspan="2" style="padding: 8px;">${totalQuantityLeft}</td>
+                    <td colspan="2" style="padding: 8px;"><strong>Stock Remaining:</strong> ${totalQuantityLeft}</td>
                 </tr>
             </tfoot>
         </table>
@@ -425,14 +414,13 @@ function exportToExcel() {
     const excelFile = new Blob([excelContent], { type: 'application/vnd.ms-excel' });
     const downloadLink = document.createElement('a');
     downloadLink.href = URL.createObjectURL(excelFile);
-    downloadLink.download = 'Sales_Report.xls';
+    downloadLink.download = 'Purchases_Report.xls';
     downloadLink.click();
 }
-
 </script>
 
 <?php
 $content = ob_get_clean();
-$page_title = 'Sales Report by Date';
+$page_title = 'Purchases Report by Date';
 require_once '../layouts/layout.php';
 ?>
